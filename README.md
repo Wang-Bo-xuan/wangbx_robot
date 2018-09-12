@@ -6,8 +6,9 @@
 > roslaunch wangbx_robot_config gazebo.launch  
 2. 启动建图  
 > roslaunch wangbx_robot_config mapping.launch  
-3. 启动遥控  
+3. 启动遥控(二选一,其中qt_teleop为GUI版本，为触控屏设计)  
 > roslaunch wangbx_robot_config teleop.launch  
+> roslaunch wangbx_robot_config qt_teleop.launch
 4. 其他功能扔处于开发阶段，包括但不限于栅格地图构建、粒子滤波定位等  
 ## 三. 其他  
 本项目完全开源，欢迎各位道友加入并贡献自己的一份力量，有交流需求欢迎联系  

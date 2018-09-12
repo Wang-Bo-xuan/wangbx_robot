@@ -168,6 +168,18 @@ WANGBX_ROBOT::teleop_UI::~teleop_UI()
     delete this->app_;
     this->app_ = NULL;
   }
+
+  if(this->odom_sub_)
+  {
+    delete this->odom_sub_;
+    this->odom_sub_ = NULL;
+  }
+
+  if(this->cmd_pub_)
+  {
+    delete this->cmd_pub_;
+    this->cmd_pub_ = NULL;
+  }
 }
 
 void WANGBX_ROBOT::teleop_UI::Init(int argc, char *argv[])
@@ -312,7 +324,7 @@ void WANGBX_ROBOT::teleop_UI::Init(int argc, char *argv[])
   this->btn_line_dec_->setFont(button);
 
   this->btn_rot_inc_ = new QPushButton();
-  this->btn_rot_inc_->setText("ros_inc");
+  this->btn_rot_inc_->setText("rot_inc");
   this->btn_rot_inc_->setGeometry(352,359,100,100);
   this->btn_rot_inc_->setParent(this->window_);
   this->btn_rot_inc_->setAutoRepeat (true);
@@ -363,6 +375,14 @@ void WANGBX_ROBOT::teleop_UI::Init(int argc, char *argv[])
   this->window_->show();
 
   ros::NodeHandle nh;
+
+  nh.param("line_min",this->line_min_,0.05);
+  nh.param("line_max",this->line_max_,2.0);
+  nh.param("rot_min",this->rot_min_,1.57);
+  nh.param("rot_max",this->rot_max_,6.28);
+  nh.param("line_gain",this->line_gain_,0.1);
+  nh.param("rot_gain",this->rot_gain_,0.1);
+
   this->cmd_pub_ = new ros::Publisher();
   *this->cmd_pub_ = nh.advertise<geometry_msgs::Twist>("/cmd_vel",20);
   this->odom_sub_ = new ros::Subscriber();
@@ -371,11 +391,14 @@ void WANGBX_ROBOT::teleop_UI::Init(int argc, char *argv[])
 
 void WANGBX_ROBOT::teleop_UI::GetVel(const nav_msgs::Odometry &msg)
 {
-  ROS_INFO("odom call back");
+  this->vel_.linear.x = msg.twist.twist.linear.x;
+  this->vel_.angular.z = msg.twist.twist.angular.z;
 }
 
 void WANGBX_ROBOT::teleop_UI::Publish(void)
 {
+  ros::spinOnce();
+
   geometry_msgs::Twist vel;
   vel.linear.x = this->cmd_line_vel_;
   vel.angular.z = this->cmd_rot_vel_;
@@ -386,6 +409,10 @@ void WANGBX_ROBOT::teleop_UI::Publish(void)
   this->label_target_line_vel_->setText(QString(tt));
   sprintf(tt,"target Rot Vel:%.2lf",this->rot_vel_);
   this->label_target_rot_vel_->setText(QString(tt));
+  sprintf(tt,"Current Line Vel:%.2lf",this->vel_.linear.x);
+  this->label_current_line_vel_->setText(QString(tt));
+  sprintf(tt,"Current Rot Vel:%.2lf",this->vel_.angular.z);
+  this->label_current_rot_vel_->setText(QString(tt));
 
   this->cmd_line_vel_ = 0.0;
   this->cmd_rot_vel_ = 0.0;
@@ -447,32 +474,72 @@ void WANGBX_ROBOT::teleop_UI::Button_RIGHT_DOWN_CallBack(bool clicked)
 
 void WANGBX_ROBOT::teleop_UI::Button_VEL_INC_CallBack(bool clicked)
 {
-  this->rot_vel_ *= 1.1;
-  this->line_vel_ *= 1.1;
+  this->rot_vel_ *= (1.0 + this->rot_gain_);
+  this->line_vel_ *= (1.0 + this->line_gain_);
+
+  if(this->rot_vel_ > this->rot_max_)
+  {
+    this->rot_vel_ = this->rot_max_;
+  }
+
+  if(this->line_vel_ > this->line_max_)
+  {
+    this->line_vel_ = this->line_max_;
+  }
 }
 
 void WANGBX_ROBOT::teleop_UI::Button_VEL_DEC_CallBack(bool clicked)
 {
-  this->rot_vel_ *= 0.9;
-  this->line_vel_ *= 0.9;
+  this->rot_vel_ *= (1 - this->rot_gain_);
+  this->line_vel_ *= (1 - this->line_gain_);
+
+  if(this->rot_vel_ < this->rot_min_)
+  {
+    this->rot_vel_ = this->rot_min_;
+  }
+
+  if(this->line_vel_ < this->line_min_)
+  {
+    this->line_vel_ = this->line_min_;
+  }
 }
 
 void WANGBX_ROBOT::teleop_UI::Button_LINE_INC_CallBack(bool clicked)
 {
-  this->line_vel_ *= 1.1;
+  this->line_vel_ *= (1.0 + this->line_gain_);
+
+  if(this->line_vel_ > this->line_max_)
+  {
+    this->line_vel_ = this->line_max_;
+  }
 }
 
 void WANGBX_ROBOT::teleop_UI::Button_LINE_DEC_CallBack(bool clicked)
 {
-  this->line_vel_ *= 0.9;
+  this->line_vel_ *= (1 - this->line_gain_);
+
+  if(this->line_vel_ < this->line_min_)
+  {
+    this->line_vel_ = this->line_min_;
+  }
 }
 
 void WANGBX_ROBOT::teleop_UI::Button_ROT_INC_CallBack(bool clicked)
 {
-  this->rot_vel_ *= 1.1;
+  this->rot_vel_ *= (1.0 + this->rot_gain_);
+
+  if(this->rot_vel_ > this->rot_max_)
+  {
+    this->rot_vel_ = this->rot_max_;
+  }
 }
 
 void WANGBX_ROBOT::teleop_UI::Button_ROT_DEC_CallBack(bool clicked)
 {
-  this->rot_vel_ *= 0.9;
+  this->rot_vel_ *= (1 - this->rot_gain_);
+
+  if(this->rot_vel_ < this->rot_min_)
+  {
+    this->rot_vel_ = this->rot_min_;
+  }
 }

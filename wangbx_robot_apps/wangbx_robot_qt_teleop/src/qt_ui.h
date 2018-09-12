@@ -74,6 +74,13 @@ namespace WANGBX_ROBOT
       ros::Publisher *cmd_pub_;
       ros::Subscriber *odom_sub_;
       geometry_msgs::Twist vel_;
+
+      double line_max_;
+      double line_min_;
+      double rot_max_;
+      double rot_min_;
+      double line_gain_;
+      double rot_gain_;
   };
 }
 
