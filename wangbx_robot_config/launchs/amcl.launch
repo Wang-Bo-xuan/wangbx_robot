@@ -13,5 +13,5 @@
     <arg name="initial_pose_a" value="$(arg initial_pose_a)"/>
   </include>
 
- <!--include file="$(find wangbx_robot_config)/launchs/includes/move_base.launch.xml"/-->
+ <include file="$(find wangbx_robot_config)/launchs/includes/move_base.launch.xml"/>
 </launch>
