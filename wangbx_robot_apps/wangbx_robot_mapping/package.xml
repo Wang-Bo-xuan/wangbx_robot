@@ -3,11 +3,14 @@
   <name>wangbx_robot_mapping</name>
   <version>2.4.2</version>
   <description>wangbx_robot_mapping</description>
-  <maintainer email="xuanbowang@lslidar.com">Boxuan Wang</maintainer>
-  <license>BSD</license>
   
-  <author email="xuanbowang@lslidar.com">Boxuan Wang</author>
+　　<author email="xuanbowang@lslidar.com">Boxuan Wang</author>
+　　<author email="yupengwang@lslidar.com">Yupeng Wang</author>
 
+  <license>BSD</license>
+ 
+　　<maintainer email="xuanbowang@lslidar.com">Boxuan Wang</maintainer>
+　　
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>roscpp</build_depend>

@@ -51,20 +51,24 @@ WANGBX_ROBOT::Mapper::~Mapper()
 void WANGBX_ROBOT::Mapper::Init(void)
 {
   this->GetParam();
+
+  memset(temp,this->unknown_threshold_,sizeof(temp));
 }
 
 void WANGBX_ROBOT::Mapper::GetParam(void)
 {
-  this->map_height_ = 100;
-  this->map_width_ = 100;
-  this->map_yaw_ = 0;
-  this->map_resolution_ = 0.05;
+  ros::NodeHandle pnh("~");
+  pnh.param("map_height",this->map_height_,1000);
+  pnh.param("map_width",this->map_width_,1000);
+  pnh.param("map_yaw",this->map_yaw_,0.0);
+  pnh.param("map_resolution",this->map_resolution_,0.05);
+  //pnh.param("map_frame",this->map_frame_,map.data());
+  //pnh.param("odom_frame",this->odom_frame_,odom.data());
   this->map_frame_ = "map";
   this->odom_frame_ = "odom";
-
-  this->occ_thrshold_ = 100;
-  this->free_threshold_ = 0;
-  this->unknown_threshold_ = -1;
+  pnh.param("occ_thrshold",this->occ_thrshold_,100);
+  pnh.param("free_threshold",this->free_threshold_,0);
+  pnh.param("unknown_threshold",this->unknown_threshold_,-1);
 }
 
 void WANGBX_ROBOT::Mapper::TF(double x,double y,double yaw,string from_frame,string to_frame)
@@ -93,10 +97,9 @@ void WANGBX_ROBOT::Mapper::TF(double x,double y,double yaw,string from_frame,str
 
 void WANGBX_ROBOT::Mapper::LidarCallBack(const sensor_msgs::LaserScan &msg)
 {
-  char temp[1000][1000];
-  memset(temp,this->unknown_threshold_,sizeof(temp));
   vector<unsigned char> data;
 
+  this->lidar_.header.frame_id = msg.header.frame_id;
   this->lidar_.angle_increment = msg.angle_increment;
   this->lidar_.angle_min = msg.angle_min;
   this->lidar_.angle_max = msg.angle_max;
@@ -117,12 +120,16 @@ void WANGBX_ROBOT::Mapper::LidarCallBack(const sensor_msgs::LaserScan &msg)
     {
       lx = r*c;
       ly = r*s;
-      x = (this->map_height_/2*this->map_resolution_+(lx*c-ly*s))/this->map_resolution_;
-      y = (this->map_width_/2*this->map_resolution_+(lx*s+ly*c))/this->map_resolution_;
+      x = ((this->map_height_/2*this->map_resolution_)+this->odom_.pose.pose.position.x+
+           (lx*cos(tf::getYaw(this->odom_.pose.pose.orientation))-ly*sin(tf::getYaw(this->odom_.pose.pose.orientation))))
+           /this->map_resolution_;
+      y = ((this->map_width_/2*this->map_resolution_)+this->odom_.pose.pose.position.y+
+           (lx*sin(tf::getYaw(this->odom_.pose.pose.orientation))+ly*cos(tf::getYaw(this->odom_.pose.pose.orientation))))
+           /this->map_resolution_;
 
-      temp[x][y] = this->free_threshold_;
+      temp[y][x] = this->free_threshold_;
     }
-    temp[x][y] = this->occ_thrshold_;
+    temp[y][x] = this->occ_thrshold_;
   }
 
   for(int i = 0;i < this->map_height_;i ++)
@@ -169,14 +176,13 @@ void WANGBX_ROBOT::Mapper::PublishMap(vector<unsigned char> data)
   this->map_.info.height = this->map_height_;
   this->map_.info.width = this->map_width_;
   this->map_.info.resolution = this->map_resolution_;
-  this->map_.info.origin.position.x = -this->map_height_/2*this->map_resolution_;
-  this->map_.info.origin.position.y = -this->map_width_/2*this->map_resolution_;
+  this->map_.info.origin.position.x = -(this->map_height_/2+this->odom_.pose.pose.position.x)*this->map_resolution_;
+  this->map_.info.origin.position.y = -(this->map_width_/2+this->odom_.pose.pose.position.y)*this->map_resolution_;
   this->map_.info.origin.position.z = 0;
   this->map_.info.origin.orientation.x = tf::createQuaternionFromYaw(this->map_yaw_).getX();
   this->map_.info.origin.orientation.y = tf::createQuaternionFromYaw(this->map_yaw_).getY();
   this->map_.info.origin.orientation.z = tf::createQuaternionFromYaw(this->map_yaw_).getZ();
   this->map_.info.origin.orientation.w = tf::createQuaternionFromYaw(this->map_yaw_).getW();
-
   this->map_.data.assign(data.begin(),data.end());
 
   this->map_pub_->publish(this->map_);
