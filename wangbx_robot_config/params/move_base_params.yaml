@@ -53,4 +53,4 @@ base_global_planner: "navfn/NavfnROS" #alternatives: global_planner/GlobalPlanne
 #conservative_reset2:
   #reset_distance: 1.5
 #aggressive_reset2:
-  #reset_distance: 0.0
+#reset_distance: 0.0

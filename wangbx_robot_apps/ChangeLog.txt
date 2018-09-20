@@ -1,2 +1,4 @@
 2018-9-12   version 0.3
 	修复qt_teleop中roscore与qcore不同步问题(以qcore时间戳为主进行ros::spinOnce即可)，添加能想到的文档
+2018-9-20   version 0.3
+        add qt_ui and mapping package,solve some bugs in mapping and turing the nav_params for a normal obstacle avoidance

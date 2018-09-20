@@ -10,7 +10,9 @@
     <rosparam file="$(find wangbx_robot_config)/params/costmap_common_params.yaml" command="load" ns="local_costmap" />   
     <rosparam file="$(find wangbx_robot_config)/params/local_costmap_params.yaml" command="load" />   
     <rosparam file="$(find wangbx_robot_config)/params/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find wangbx_robot_config)/params/move_base_params.yaml" command="load" />
     <rosparam file="$(find wangbx_robot_config)/params/dwa_local_planner_params.yaml" command="load" />
+    <rosparam file="$(find wangbx_robot_config)/params/navfn_global_planner_params.yaml" command="load" />
     
     <param name="global_costmap/global_frame" value="$(arg global_frame_id)"/>
     <param name="global_costmap/robot_base_frame" value="$(arg base_frame_id)"/>

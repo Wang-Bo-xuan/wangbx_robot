@@ -52,7 +52,13 @@ void WANGBX_ROBOT::Mapper::Init(void)
 {
   this->GetParam();
 
-  memset(temp,this->unknown_threshold_,sizeof(temp));
+  for(int i = 0;i < 1000;i ++)
+  {
+    for(int j = 0;j < 1000;j ++)
+    {
+      this->temp[i][j] = 0.5;
+    }
+  }
 }
 
 void WANGBX_ROBOT::Mapper::GetParam(void)
@@ -66,9 +72,10 @@ void WANGBX_ROBOT::Mapper::GetParam(void)
   //pnh.param("odom_frame",this->odom_frame_,odom.data());
   this->map_frame_ = "map";
   this->odom_frame_ = "odom";
-  pnh.param("occ_thrshold",this->occ_thrshold_,100);
-  pnh.param("free_threshold",this->free_threshold_,0);
-  pnh.param("unknown_threshold",this->unknown_threshold_,-1);
+  pnh.param("occ_thrshold",this->occ_thrshold_,0.6);
+  pnh.param("free_threshold",this->free_threshold_,0.4);
+  pnh.param("unknown_threshold",this->unknown_threshold_,0.5);
+  pnh.param("update_range",this->update_range_,10.0);
 }
 
 void WANGBX_ROBOT::Mapper::TF(double x,double y,double yaw,string from_frame,string to_frame)
@@ -108,6 +115,17 @@ void WANGBX_ROBOT::Mapper::LidarCallBack(const sensor_msgs::LaserScan &msg)
   this->lidar_.ranges.assign(msg.ranges.begin(),msg.ranges.end());
   this->lidar_.intensities.assign(msg.intensities.begin(),msg.intensities.end());
 
+  //  double dx = fabs(this->odom_.pose.pose.position.x - this->last_odom_.pose.pose.position.x);
+  //  double dy = fabs(this->odom_.pose.pose.position.y - this->last_odom_.pose.pose.position.y);
+  //  double dis = fabs(hypot(dx,dy));
+  //  double da = fabs(tf::getYaw(this->odom_.pose.pose.orientation) - tf::getYaw(this->last_odom_.pose.pose.orientation));
+
+  //  if(dis < 0.1)
+  //  {
+  //    ROS_INFO("no moving...");
+  //    return ;
+  //  }
+
   double range,angle,c,s,lx,ly;
   int x,y;
   for(int i = 0;i < this->lidar_.ranges.size();i ++)
@@ -116,20 +134,47 @@ void WANGBX_ROBOT::Mapper::LidarCallBack(const sensor_msgs::LaserScan &msg)
     angle = this->lidar_.angle_min + this->lidar_.angle_increment * i;
     c = cos(angle);
     s = sin(angle);
-    for(double r = 0.0;r < range + this->map_resolution_;r += this->map_resolution_)
+    bool out_of_updatez_range = false;
+
+    if(range <= this->lidar_.range_min || range >= this->lidar_.range_max)
     {
+      range = this->lidar_.range_max;
+    }
+
+    for(double r = this->lidar_.range_min;r < range + this->map_resolution_ + this->map_resolution_;r += this->map_resolution_)
+    {
+      if(r > this->update_range_)
+      {
+        out_of_updatez_range = true;
+
+        break;
+      }
+
       lx = r*c;
       ly = r*s;
       x = ((this->map_height_/2*this->map_resolution_)+this->odom_.pose.pose.position.x+
            (lx*cos(tf::getYaw(this->odom_.pose.pose.orientation))-ly*sin(tf::getYaw(this->odom_.pose.pose.orientation))))
-           /this->map_resolution_;
+          /this->map_resolution_;
       y = ((this->map_width_/2*this->map_resolution_)+this->odom_.pose.pose.position.y+
            (lx*sin(tf::getYaw(this->odom_.pose.pose.orientation))+ly*cos(tf::getYaw(this->odom_.pose.pose.orientation))))
-           /this->map_resolution_;
+          /this->map_resolution_;
 
-      temp[y][x] = this->free_threshold_;
+      double bel = temp[y][x];
+      double log_bel = log(bel/(1.0-bel));
+      double p;
+      if(r < range + this->map_resolution_/2)
+        p = this->free_threshold_;
+      else if(r > range + this->map_resolution_/2)
+        p = this->unknown_threshold_;
+      else
+        p = this->occ_thrshold_;
+      log_bel += log(p/(1.0-p));
+      temp[y][x] = 1.0 - 1.0 / (1+exp(log_bel));
     }
-    temp[y][x] = this->occ_thrshold_;
+    if(!out_of_updatez_range)
+    {
+      temp[y][x] = this->occ_thrshold_;
+    }
   }
 
   for(int i = 0;i < this->map_height_;i ++)
@@ -138,18 +183,13 @@ void WANGBX_ROBOT::Mapper::LidarCallBack(const sensor_msgs::LaserScan &msg)
     {
       if(temp[i][j] == this->unknown_threshold_)
       {
-        data.push_back(this->unknown_threshold_);
-      }
-      else if(temp[i][j] == this->free_threshold_)
-      {
-        data.push_back(this->free_threshold_);
-      }
-      else if(temp[i][j] == this->occ_thrshold_)
-      {
-        data.push_back(this->occ_thrshold_);
+        this->map_.data.push_back(-1);
       }
       else
-        ;
+      {
+        double t = temp[i][j]*100;
+        this->map_.data.push_back((int)floor(t+0.5));
+      }
     }
   }
 
@@ -157,6 +197,13 @@ void WANGBX_ROBOT::Mapper::LidarCallBack(const sensor_msgs::LaserScan &msg)
   this->lidar_.intensities.clear();
 
   this->PublishMap(data);
+
+  //  this->last_odom_.pose.pose.position.x = this->odom_.pose.pose.position.x;
+  //  this->last_odom_.pose.pose.position.y = this->odom_.pose.pose.position.y;
+  //  this->last_odom_.pose.pose.orientation.x = this->odom_.pose.pose.orientation.x;
+  //  this->last_odom_.pose.pose.orientation.y = this->odom_.pose.pose.orientation.y;
+  //  this->last_odom_.pose.pose.orientation.z = this->odom_.pose.pose.orientation.w;
+  //  this->last_odom_.pose.pose.orientation.w = this->odom_.pose.pose.orientation.z;
 }
 
 void WANGBX_ROBOT::Mapper::OdomCallBack(const nav_msgs::Odometry &msg)
@@ -183,7 +230,7 @@ void WANGBX_ROBOT::Mapper::PublishMap(vector<unsigned char> data)
   this->map_.info.origin.orientation.y = tf::createQuaternionFromYaw(this->map_yaw_).getY();
   this->map_.info.origin.orientation.z = tf::createQuaternionFromYaw(this->map_yaw_).getZ();
   this->map_.info.origin.orientation.w = tf::createQuaternionFromYaw(this->map_yaw_).getW();
-  this->map_.data.assign(data.begin(),data.end());
+//  this->map_.data.assign(data.begin(),data.end());
 
   this->map_pub_->publish(this->map_);
   this->map_.data.clear();

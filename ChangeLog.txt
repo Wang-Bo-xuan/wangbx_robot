@@ -6,3 +6,5 @@
 	(2). add the README.md and ChangeLog.txt
 2018-9-12   version 0.3
 	solve qt_teleop's bug and add params for convenience
+2018-9-20   version 0.3
+        (1). solve bug and add probability-grid-model in mapping package and turing nav_params for a normal obstacle avoidance

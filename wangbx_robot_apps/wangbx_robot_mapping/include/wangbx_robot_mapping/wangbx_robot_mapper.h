@@ -38,8 +38,9 @@ namespace WANGBX_ROBOT
 
       sensor_msgs::LaserScan lidar_;
       nav_msgs::Odometry odom_;
+//      nav_msgs::Odometry last_odom_;
       nav_msgs::OccupancyGrid map_;
-      char temp[1000][1000];
+      double temp[1000][1000];
 
       int map_height_;
       int map_width_;
@@ -47,9 +48,10 @@ namespace WANGBX_ROBOT
       double map_resolution_;
       string map_frame_;
       string odom_frame_;
-      int occ_thrshold_;
-      int free_threshold_;
-      int unknown_threshold_;
+      double occ_thrshold_;
+      double free_threshold_;
+      double unknown_threshold_;
+      double update_range_;
   };
 }
 
