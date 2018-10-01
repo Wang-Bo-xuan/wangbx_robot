@@ -30,5 +30,5 @@ include_directories(include
 )
 
 add_executable(wangbx_robot_mapper src/mapper.cpp src/wangbx_robot_mapper.cpp)
-add_dependencies(FindInitClusters ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(wangbx_robot_mapper ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(wangbx_robot_mapper ${catkin_LIBRARIES})

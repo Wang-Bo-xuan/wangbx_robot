@@ -14,4 +14,6 @@
   </include>
 
  <include file="$(find wangbx_robot_config)/launchs/includes/move_base.launch.xml"/>
+ <node name="rviz" pkg="rviz" type="rviz"
+   args="-d $(find wangbx_robot_config)/rvizs/nav.rviz"/>
 </launch>
