@@ -3,14 +3,13 @@ project(wangbx_robot_teleop)
 
 find_package(catkin REQUIRED COMPONENTS
             roscpp
-            geometry_msgs
-            joy)
+            geometry_msgs)
 
 include_directories(${catkin_INCLUDE_DIRS})
 
 catkin_package(
   INCLUDE_DIRS
-  CATKIN_DEPENDS roscpp geometry_msgs joy
+  CATKIN_DEPENDS roscpp geometry_msgs
   DEPENDS
 )
 
