@@ -29,7 +29,7 @@ catkin_package(
    DEPENDS
 )
 
-add_executable(qt_teleop src/main.cpp src/qt_ui.cpp)
-add_dependencies(qt_teleop ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(qt_teleop ${catkin_LIBRARIES} Qt5::Widgets)
+add_executable(wangbx_qt_teleop src/main.cpp src/qt_ui.cpp)
+add_dependencies(wangbx_qt_teleop ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(wangbx_qt_teleop ${catkin_LIBRARIES} Qt5::Widgets)
 

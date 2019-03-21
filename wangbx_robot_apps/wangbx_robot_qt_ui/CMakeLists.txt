@@ -29,7 +29,7 @@ catkin_package(
    DEPENDS
 )
 
-add_executable(qt_ui src/main.cpp src/qt_ui.cpp)
-add_dependencies(qt_ui ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(qt_ui ${catkin_LIBRARIES} Qt5::Widgets)
+add_executable(wangbx_qt_ui src/main.cpp src/qt_ui.cpp)
+add_dependencies(wangbx_qt_ui ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(wangbx_qt_ui ${catkin_LIBRARIES} Qt5::Widgets)
 

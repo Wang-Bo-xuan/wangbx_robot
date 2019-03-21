@@ -52,9 +52,9 @@ void WANGBX_ROBOT::Mapper::Init(void)
 {
   this->GetParam();
 
-  for(int i = 0;i < 1000;i ++)
+  for(int i = 0;i < this->map_height_;i ++)
   {
-    for(int j = 0;j < 1000;j ++)
+    for(int j = 0;j < this->map_width_;j ++)
     {
       this->temp[i][j] = 0.5;
     }
@@ -64,8 +64,8 @@ void WANGBX_ROBOT::Mapper::Init(void)
 void WANGBX_ROBOT::Mapper::GetParam(void)
 {
   ros::NodeHandle pnh("~");
-  pnh.param("map_height",this->map_height_,1000);
-  pnh.param("map_width",this->map_width_,1000);
+  pnh.param("map_height",this->map_height_,500);
+  pnh.param("map_width",this->map_width_,500);
   pnh.param("map_yaw",this->map_yaw_,0.0);
   pnh.param("map_resolution",this->map_resolution_,0.05);
   //pnh.param("map_frame",this->map_frame_,map.data());
@@ -197,13 +197,6 @@ void WANGBX_ROBOT::Mapper::LidarCallBack(const sensor_msgs::LaserScan &msg)
   this->lidar_.intensities.clear();
 
   this->PublishMap(data);
-
-  //  this->last_odom_.pose.pose.position.x = this->odom_.pose.pose.position.x;
-  //  this->last_odom_.pose.pose.position.y = this->odom_.pose.pose.position.y;
-  //  this->last_odom_.pose.pose.orientation.x = this->odom_.pose.pose.orientation.x;
-  //  this->last_odom_.pose.pose.orientation.y = this->odom_.pose.pose.orientation.y;
-  //  this->last_odom_.pose.pose.orientation.z = this->odom_.pose.pose.orientation.w;
-  //  this->last_odom_.pose.pose.orientation.w = this->odom_.pose.pose.orientation.z;
 }
 
 void WANGBX_ROBOT::Mapper::OdomCallBack(const nav_msgs::Odometry &msg)

@@ -1,5 +1,5 @@
 <launch>
-  <node name="turtlebot_teleop_keyboard" pkg="wangbx_robot_qt_teleop" type="qt_teleop"  output="screen" >
+  <node name="turtlebot_teleop_keyboard" pkg="wangbx_robot_qt_teleop" type="wangbx_qt_teleop"  output="screen" >
     <param name="line_min" value="0.05"/>
     <param name="line_max" value="2.0"/>
     <param name="rot_min" value="1.57"/>
