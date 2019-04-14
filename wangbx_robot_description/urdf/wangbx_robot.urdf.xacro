@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <robot name="wangbx_robot" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:include filename="$(find wangbx_robot_description)/urdf/common_properties.urdf.xacro"/>
-  <xacro:include filename="$(find wangbx_robot_description)/urdf/wangbx_robot_gazebo.c16.urdf.xacro"/>
+  <xacro:include filename="$(find wangbx_robot_description)/urdf/wangbx_robot_gazebo.urdf.xacro"/>
 
   <xacro:macro name="wangbx_robot">
     <link name="base_footprint"/>
